@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101418">
+  <title>Venta-Clean SW | 3D Extract Builder</title>
+  <style>
+    :root {color-scheme:dark;--bg:#0c1014;--panel:#171d22;--surface:#242c31;--line:#344047;--text:#edf4ee;--muted:#9dabac;--green:#9be64b;--darkgreen:#205321;--warn:#f3c879;}
+    *{box-sizing:border-box}body{margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:14px}button,input,select{font:inherit}button{cursor:pointer;touch-action:manipulation}button:disabled{opacity:.45;cursor:not-allowed}
+    #app{height:100vh;height:100dvh;display:flex;flex-direction:column}
+    header{padding:calc(env(safe-area-inset-top) + 9px) 14px 9px;background:#141b1f;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);flex:none;gap:12px;z-index:3}
+    .brand{font-weight:800;letter-spacing:.1px;font-size:15px}.sub{font-size:11px;color:var(--muted);font-weight:500;margin-top:3px}.tag{background:#2b4330;border:1px solid #456c44;color:#c4ffa9;font-size:11px;border-radius:99px;padding:6px 10px;white-space:nowrap}
+    #viewer{position:relative;flex:1;min-height:175px;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#29302d 0%,#0b1014 75%)}#viewer canvas{display:block;touch-action:none}
+    #labels-btn{position:absolute;top:53px;right:12px;background:#182024ed;border:1px solid #45524b;border-radius:10px;color:#f1f7ef;padding:9px 11px;font-size:12px;z-index:2}#hud{position:absolute;left:12px;top:12px;pointer-events:none;color:#b5c2be;font-size:12px;max-width:70%;text-shadow:0 2px 5px #000a}#hud strong{color:white}#focus-btn{position:absolute;top:10px;right:12px;background:#182024ed;border:1px solid #45524b;border-radius:10px;color:#f1f7ef;padding:9px 11px;font-size:12px}
+    .legend{position:absolute;bottom:10px;left:12px;display:flex;gap:12px;font-size:11px;color:#c9d3c9;background:#11191cbb;border-radius:10px;padding:8px 9px;backdrop-filter:blur(8px)}.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;background:#d64b4b}.dot.green{background:var(--green)}.dot.dark{background:#205321}
+    #dock{height:min(420px,49dvh);min-height:290px;background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column;flex:none;padding-bottom:env(safe-area-inset-bottom)}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);padding:8px 10px 0;gap:5px;border-bottom:1px solid var(--line)}.tab{min-width:0;min-height:41px;background:none;border:0;color:#a4b2b3;font-weight:650;font-size:13px;border-bottom:3px solid transparent}.tab.active{color:#b9f991;border-bottom-color:var(--green)}.pane{display:none;overflow-y:auto;overscroll-behavior:contain;padding:13px 13px 24px;flex:1}.pane.active{display:block}
+    .row{display:flex;align-items:center;gap:8px}.grow{flex:1;min-width:0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}label{display:block;color:#aabbb5;font-size:12px;margin-bottom:5px;font-weight:550}.field{margin-bottom:10px}input,select{display:block;min-width:0;width:100%;height:42px;border:1px solid #45504f;border-radius:10px;padding:8px 11px;background:#242c31;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--green)}input[type=number]{font-variant-numeric:tabular-nums}
+    .btn{border-radius:10px;border:1px solid #45554d;background:#2b3536;color:var(--text);min-height:43px;padding:9px 11px;font-weight:650}.btn.main{color:#10230e;background:var(--green);border-color:var(--green)}.btn.outline{background:#202b24;border-color:#567c4b;color:#dbffd0}.btn.danger{background:#372725;border-color:#7c4740;color:#ffc2b8}.btn.wide{width:100%}.btn.small{font-size:12px;min-height:34px;padding:6px 9px}
+    .card{border:1px solid #394747;background:#1e272a;border-radius:12px;padding:11px;margin-bottom:10px}.card-title{font-size:13px;font-weight:750;margin-bottom:8px}.help{font-size:12px;color:#a2b4ae;line-height:1.45;margin:6px 0 11px}.subtitle{font-size:12px;color:var(--muted);margin-bottom:11px}.inline{display:flex;gap:8px;align-items:end}.inline>.field{flex:1;min-width:0}
+    .scrolllist{display:flex;flex-direction:column;gap:6px}.item{width:100%;border-radius:10px;border:1px solid #394747;background:#242d30;text-align:left;padding:10px;color:var(--text);min-height:44px}.item.active{border-color:#9be64b;background:#283b29}.meta{display:block;color:var(--muted);font-size:11px;margin-top:3px}.section-title{font-weight:750;margin:13px 0 6px;font-size:13px}.chip{font-size:11px;display:inline-block;color:#d7f9c4;background:#31452c;border:1px solid #4a6d46;padding:4px 7px;border-radius:8px}
+    #toast{position:absolute;z-index:12;left:50%;transform:translateX(-50%);top:75px;background:#162b22;border:1px solid #73a966;padding:10px 13px;border-radius:12px;box-shadow:0 4px 16px #000a;opacity:0;pointer-events:none;transition:opacity .2s;font-size:12px;white-space:nowrap;max-width:90vw;text-overflow:ellipsis;overflow:hidden}#toast.visible{opacity:1}
+    #loadfile{display:none} .code{font-family:ui-monospace,monospace;font-size:12px;color:#bdc3bd}
+    @media(min-width:900px){#dock{height:395px}.pane{max-width:800px;margin:0 auto;width:100%}#viewer{min-height:300px}}
+    @media(max-height:620px){#dock{height:55dvh;min-height:240px}#viewer{min-height:140px}header{padding-top:calc(env(safe-area-inset-top) + 5px);padding-bottom:5px}}
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}
+  </script>
+</head>
+<body>
+<div id="app">
+  <header><div><div class="brand">VENTA-CLEAN SW <span style="color:#96d65b">/ 3D EXTRACT</span></div><div class="sub">Kitchen extract schematic builder · v2 prototype</div></div><span class="tag">Multiple canopies + outlets</span></header>
+  <div id="viewer"><div id="hud"><strong id="hudline">Canopy 1 · Outlet 1</strong><br>Drag to rotate · pinch to zoom · labels export to PNG</div><button id="focus-btn" type="button">⌖ Fit view</button><button id="labels-btn" type="button" aria-pressed="true">Aa Labels: on</button><div class="legend"><span><i class="dot"></i>Not cleaned</span><span><i class="dot green"></i>Cleaned</span><span><i class="dot dark"></i>Access panel</span></div></div>
+  <section id="dock">
+    <div class="tabs"><button class="tab active" data-tab="build">＋ Build</button><button class="tab" data-tab="edit">✎ Edit</button><button class="tab" data-tab="runs">⑂ Runs</button><button class="tab" data-tab="files">↧ Save</button></div>
+    <div class="pane active" data-pane="build">
+      <div class="row" style="margin-bottom:12px"><button class="btn outline grow" id="add-canopy">＋ Add canopy</button><button class="btn outline grow" id="add-outlet">＋ Outlet to canopy</button></div>
+      <div class="field"><label for="build-run">Current duct run</label><select id="build-run"></select></div>
+      <div class="grid2"><div class="field"><label for="add-shape">Duct type</label><select id="add-shape"><option value="rect">□ Rectangular</option><option value="round">○ Circular</option></select></div><div class="field"><label for="add-dir">Direction (site axes)</label><select id="add-dir"><option value="up">↑ Up</option><option value="back">↗ Back</option><option value="right">→ Right</option><option value="left">← Left</option><option value="front">↙ Forward</option><option value="down">↓ Down</option></select></div></div>
+      <div class="grid2"><div class="field"><label for="add-length">Length (metres)</label><input id="add-length" type="number" inputmode="decimal" value="1.0" min="0.2" max="30" step="0.1"></div><div class="field"><label id="add-size-label" for="add-size">Duct width (mm)</label><select id="add-size"><option value="400">400</option><option value="500" selected>500</option><option value="600">600</option><option value="800">800</option><option value="1000">1000</option></select></div></div>
+      <button class="btn main wide" id="add-duct">＋ Add connected duct section</button>
+      <p class="help">Choose a canopy outlet, then add sections in order. Changing direction automatically creates an elbow. Add another outlet for a separate duct off the same canopy. All measurements are schematic.</p>
+    </div>
+    <div class="pane" data-pane="edit">
+      <div id="edit-none" class="card">Tap a duct section, access panel or canopy in the 3D view, or select an item in <b>Runs</b>.</div>
+      <div id="edit-segment" hidden>
+        <div class="card-title" id="edit-name">Selected duct section</div>
+        <div class="grid2"><div class="field"><label for="edit-length">Length (m)</label><input id="edit-length" type="number" inputmode="decimal" step="0.1" min="0.2" max="30"></div><div class="field"><label for="edit-dir">Direction</label><select id="edit-dir"><option value="up">↑ Up</option><option value="down">↓ Down</option><option value="left">← Left</option><option value="right">→ Right</option><option value="front">↙ Forward</option><option value="back">↗ Back</option></select></div></div>
+        <div class="grid2"><div class="field"><label for="edit-shape">Duct type</label><select id="edit-shape"><option value="rect">□ Rectangular</option><option value="round">○ Circular</option></select></div><div class="field"><label for="edit-size">Width / diameter (mm)</label><input id="edit-size" type="number" inputmode="numeric" min="100" max="2000" step="50"></div></div>
+        <div class="field"><label for="edit-status">Cleaning status</label><select id="edit-status"><option value="notcleaned">Not cleaned</option><option value="cleaned">Cleaned</option></select></div>
+        <div class="card"><div class="card-title">Access panels <span id="panel-count" class="chip">0</span></div>
+          <div class="grid2"><div class="field"><label for="panel-face">Face</label><select id="panel-face"><option value="top">Top face</option><option value="right">Right face</option><option value="left">Left face</option><option value="bottom">Bottom face</option></select></div><div class="field"><label for="panel-at">Along section (%)</label><input type="number" id="panel-at" min="10" max="90" value="50" step="10"></div></div>
+          <button class="btn outline wide" id="add-panel">＋ Add access panel</button><div id="panels-list" class="scrolllist" style="margin-top:7px"></div>
+          <p class="help">Square on rectangular duct. Oval on circular duct. You can add several per section.</p></div>
+        <button class="btn danger wide" id="remove-segment">Remove this and later sections</button>
+      </div>
+      <div id="edit-canopy" hidden><div class="card-title" id="canopy-name">Canopy</div><div class="field"><label for="canopy-width">Canopy width (metres)</label><input id="canopy-width" type="number" inputmode="decimal" min="1" max="8" step="0.1"></div><div class="row"><button class="btn main grow" id="outlet-on-selected">＋ Add outlet</button><button class="btn grow" id="select-canopy-outlet">Select first outlet</button></div><p class="help">Each canopy supports multiple separate duct outlets. Outlet positions spread automatically across its width.</p></div>
+      <div id="edit-outlet" hidden><div class="card-title">Canopy outlet</div><p class="help">This is a separate duct run. Use Build to add ductwork. Its sections can be edited independently.</p><button class="btn main wide" id="build-from-outlet">Build from this outlet</button></div>
+    </div>
+    <div class="pane" data-pane="runs"><p class="subtitle">Tap a canopy, outlet or section to edit it or continue that run.</p><div id="runs-list" class="scrolllist"></div></div>
+    <div class="pane" data-pane="files"><div class="grid2"><button class="btn main" id="save">Save on this phone</button><button class="btn" id="load">Load saved</button><button class="btn" id="export-png">Export PNG image</button><button class="btn" id="export-json">Backup project JSON</button><button class="btn" id="import-json">Import JSON backup</button><button class="btn danger" id="new-project">New blank project</button></div><input id="loadfile" type="file" accept="application/json,.json"><p class="help">Save uses this browser's storage, so it may disappear if Safari data is cleared. Export a JSON backup to your Files app to keep your work safely. PNG exports the drawing for your report. No account or server is required.</p><p class="help">⚠ Prototype only: schematic, not to scale. Separate canopy branches do not yet merge into shared ductwork. No compliance or cleaning certification is implied by colouring a section.</p></div>
+  </section>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const $ = id => document.getElementById(id);
+const U = 100; // one scene metre
+const PALETTE = { unassessed:0xd64b4b, cleaned:0x8bdf3c, notcleaned:0xd64b4b, door:0x1b5b22, canopy:0xb7c1c0 };
+const dirs={up:[0,1,0],down:[0,-1,0],left:[-1,0,0],right:[1,0,0],front:[0,0,1],back:[0,0,-1]};
+const dirVector=d=>new THREE.Vector3(...dirs[d]);
+const uid=()=>String(++state.idCounter);
+const formatMetres=value=>Number(value).toLocaleString('en-GB',{maximumFractionDigits:2});
+const segmentName=s=>s.shape==='round'?'Circular duct':'Rectangular duct';
+const segmentSize=s=>s.shape==='round'?`Ø${s.size} mm`:`${s.size} mm wide`;
+let state={version:2,idCounter:0,canopies:[],outlets:[],activeOutletId:null,selected:null};
+let toastTimer;
+function toast(s){$('toast').textContent=s;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2500)}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function byId(arr,id){return arr.find(x=>x.id===id)}
+function canopyForOutlet(o){return byId(state.canopies,o.canopyId)}
+function activeOutlet(){return byId(state.outlets,state.activeOutletId)}
+function segmentById(id){for(const o of state.outlets){const i=o.segments.findIndex(s=>s.id===id);if(i!==-1)return {o,s:o.segments[i],index:i}}return null}
+function panelById(id){for(const o of state.outlets){for(const s of o.segments){const p=s.panels.find(p=>p.id===id);if(p)return {o,s,p}}}return null}
+function select(kind,id,tab='edit') {state.selected={kind,id};if(kind==='outlet')state.activeOutletId=id;if(kind==='segment'){const r=segmentById(id);if(r)state.activeOutletId=r.o.id}renderUI();if(tab)setTab(tab);highlightSelection()}
+
+function addCanopy(){const maxRight=state.canopies.reduce((m,c)=>Math.max(m,c.x+(c.width*U/2)), -160);const w=3;const x=state.canopies.length ? maxRight + 230 : 0;const c={id:uid(),name:'Canopy '+(state.canopies.length+1),x,width:w};state.canopies.push(c);addOutlet(c.id,true);select('canopy',c.id,'build');render3D();fitView();toast(c.name+' added')}
+function addOutlet(canopyId,silent=false){const c=byId(state.canopies,canopyId);if(!c)return;const existing=state.outlets.filter(o=>o.canopyId===canopyId);if(existing.length>=6){toast('Maximum 6 outlets per canopy in this prototype');return}const o={id:uid(),canopyId,segments:[]};state.outlets.push(o);state.activeOutletId=o.id;state.selected={kind:'outlet',id:o.id};render3D();renderUI();if(!silent)toast('Another independent duct outlet added');return o}
+function suggestedCanopyId(){if(state.selected?.kind==='canopy')return state.selected.id;if(state.selected?.kind==='outlet')return byId(state.outlets,state.selected.id)?.canopyId;if(state.selected?.kind==='segment')return segmentById(state.selected.id)?.o.canopyId;return activeOutlet()?.canopyId||state.canopies[0]?.id}
+function addSection(){const o=activeOutlet();if(!o){toast('Select an outlet first');return}const length=Number($('add-length').value);if(!(length>=0.2&&length<=30)){toast('Choose a length between 0.2 and 30 metres');return}const dir=$('add-dir').value,shape=$('add-shape').value,size=Number($('add-size').value);const last=o.segments.at(-1);if(last&&isReverse(last.dir,dir)){toast('180° turns need two 90° bends');return}const s={id:uid(),dir,length,shape,size,status:'notcleaned',panels:[]};o.segments.push(s);select('segment',s.id,'build');render3D();fitView(false);toast('Section added to '+labelOutlet(o))}
+function isReverse(a,b){return dirVector(a).dot(dirVector(b))< -0.5}
+function editSegmentProp(prop,value){const r=segmentById(state.selected?.id);if(!r)return;const old=r.s[prop];if(prop==='length'||prop==='size')value=Number(value);if(prop==='length'&&!(value>=.2&&value<=30)){toast('Length must be 0.2–30m');renderUI();return}if(prop==='size'&&!(value>=100&&value<=2000)){toast('Size must be 100–2000mm');renderUI();return}if(prop==='dir'){const p=r.o.segments[r.index-1],n=r.o.segments[r.index+1];if((p&&isReverse(p.dir,value))||(n&&isReverse(n.dir,value))){toast('180° turns need two 90° bends');renderUI();return}}r.s[prop]=value;if(old!==value){render3D();renderUI();highlightSelection()}}
+function addPanel(){const r=segmentById(state.selected?.id);if(!r){toast('Select a straight duct first');return}const at=clamp(Number($('panel-at').value),10,90)/100;r.s.panels.push({id:uid(),at,face:$('panel-face').value});render3D();renderUI();toast('Access panel added')}
+function removePanel(id){const r=panelById(id);if(!r)return;r.s.panels=r.s.panels.filter(p=>p.id!==id);render3D();renderUI();toast('Access panel removed')}
+function removeSelectedSegment(){const r=segmentById(state.selected?.id);if(!r)return;if(!confirm('Remove this duct section and every section after it on this run?'))return;r.o.segments.splice(r.index);state.selected={kind:'outlet',id:r.o.id};render3D();renderUI();toast('Run trimmed')}
+function labelOutlet(o){const c=canopyForOutlet(o);const siblings=state.outlets.filter(x=>x.canopyId===o.canopyId);return `${c?.name||'Canopy'} · outlet ${siblings.indexOf(o)+1}`}
+function outletPosition(o){const c=canopyForOutlet(o),siblings=state.outlets.filter(x=>x.canopyId===c.id),i=siblings.indexOf(o),n=siblings.length;const fraction=n===1?0:((i/(n-1))-.5)*.68;return new THREE.Vector3(c.x+fraction*c.width*U,56,0)}
+function setTab(name){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('active',x.dataset.pane===name))}
+function renderUI(){
+ $('build-run').innerHTML='';for(const o of state.outlets){const op=document.createElement('option');op.value=o.id;op.textContent=labelOutlet(o);$('build-run').appendChild(op)}$('build-run').value=state.activeOutletId||'';
+ const sel=state.selected;const seg=sel?.kind==='segment'?segmentById(sel.id):null;
+ $('edit-none').hidden=!!sel;$('edit-segment').hidden=!seg;$('edit-canopy').hidden=sel?.kind!=='canopy';$('edit-outlet').hidden=sel?.kind!=='outlet';
+ if(seg){const {s,o,index}=seg;$('edit-name').textContent=`${segmentName(s)} ${index+1} · ${segmentSize(s)} · ${formatMetres(s.length)} m`;$('edit-length').value=s.length;$('edit-dir').value=s.dir;$('edit-shape').value=s.shape;$('edit-size').value=s.size;$('edit-status').value=s.status;$('panel-count').textContent=s.panels.length+' panels';const host=$('panels-list');host.replaceChildren();s.panels.forEach((p,i)=>{const b=document.createElement('div');b.className='row';const txt=document.createElement('div');txt.className='grow';txt.style.fontSize='12px';txt.textContent=`${i+1}. ${s.shape==='rect'?'Square':'Oval'} access panel · ${p.face} · ${Math.round(p.at*100)}% along`;const btn=document.createElement('button');btn.className='btn small danger';btn.textContent='Remove';btn.addEventListener('click',()=>removePanel(p.id));b.append(txt,btn);host.appendChild(b)})}
+ if(sel?.kind==='canopy'){const c=byId(state.canopies,sel.id);if(c){$('canopy-name').textContent=c.name;$('canopy-width').value=c.width}}
+ const list=$('runs-list');list.replaceChildren();
+ for(const c of state.canopies){appendItem(list,`▣ ${c.name}`,`${c.width}m canopy · ${state.outlets.filter(o=>o.canopyId===c.id).length} outlet(s)`,'canopy',c.id);for(const o of state.outlets.filter(o=>o.canopyId===c.id)){appendItem(list,`　↳ Outlet ${state.outlets.filter(a=>a.canopyId===c.id).indexOf(o)+1}`,`${o.segments.length} section(s)${o.id===state.activeOutletId?' · active':''}`,'outlet',o.id);o.segments.forEach((s,i)=>appendItem(list,`　　 ${i+1}. ${segmentName(s)}`,`${segmentSize(s)} · ${formatMetres(s.length)} m · ${s.dir} · ${s.status==='cleaned'?'cleaned':'not cleaned'} · ${s.panels.length} panel(s)`,'segment',s.id))}}
+ $('hudline').textContent=(activeOutlet()?labelOutlet(activeOutlet()):'No active run')+' · '+(activeOutlet()?.segments.length||0)+' sections';
+}
+function appendItem(host,title,details,kind,id){const b=document.createElement('button');b.type='button';b.className='item'+(state.selected?.kind===kind&&state.selected.id===id?' active':'');const strong=document.createElement('span');strong.textContent=title;const sub=document.createElement('span');sub.className='meta';sub.textContent=details;b.append(strong,sub);b.addEventListener('click',()=>select(kind,id,'edit'));host.appendChild(b)}
+
+// 3D scene setup
+const viewer=$('viewer');const scene=new THREE.Scene();scene.background=new THREE.Color(0x0e1417);const camera=new THREE.PerspectiveCamera(44,1,.1,10000);camera.position.set(500,370,580);const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;viewer.prepend(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.09;controls.minDistance=100;controls.maxDistance=5000;controls.screenSpacePanning=true;controls.target.set(0,100,0);
+scene.add(new THREE.HemisphereLight(0xffffff,0x293830,2.0));const light=new THREE.DirectionalLight(0xffffff,2.0);light.position.set(-300,550,390);scene.add(light);const grid=new THREE.GridHelper(5000,50,0x354242,0x263033);grid.position.y=-65;scene.add(grid);
+const sceneGroup=new THREE.Group();scene.add(sceneGroup);const labelGroup=new THREE.Group();scene.add(labelGroup);const labelSprites=[];let labelsVisible=true;const pickMeshes=[];const raycaster=new THREE.Raycaster();const pointer=new THREE.Vector2();let clickStart=null;let lastBounds=null;
+// Billboard labels use canvas textures so text appears both on the iPhone and in PNG exports.
+// They are excluded from sceneGroup so fitting the camera is based on duct geometry only.
+function createSceneLabel(title,details,anchor,offset=new THREE.Vector3(40,35,42)){
+ const canvas=document.createElement('canvas');canvas.width=640;canvas.height=152;
+ const ctx=canvas.getContext('2d');if(!ctx)return;
+ ctx.fillStyle='rgba(12,22,24,.95)';ctx.beginPath();ctx.roundRect(4,4,632,144,21);ctx.fill();
+ ctx.strokeStyle='rgba(187,218,199,.88)';ctx.lineWidth=3;ctx.stroke();
+ ctx.textBaseline='middle';ctx.fillStyle='#ffffff';ctx.font='700 36px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+ ctx.fillText(title,30,55,580);
+ ctx.fillStyle='#bdd9c6';ctx.font='29px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+ ctx.fillText(details||' ',30,106,580);
+ const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+ const mat=new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false,depthWrite:false,toneMapped:false});
+ const sprite=new THREE.Sprite(mat);sprite.position.copy(anchor).add(offset);sprite.renderOrder=20;
+ labelGroup.add(sprite);labelSprites.push(sprite);
+ const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([anchor,sprite.position]),new THREE.LineBasicMaterial({color:0xc0d0c1,transparent:true,opacity:.65,depthTest:false,depthWrite:false}));
+ line.renderOrder=19;labelGroup.add(line);
+}
+function clearSceneLabels(){
+ for(const child of [...labelGroup.children]){
+  labelGroup.remove(child);
+  if(child.geometry)child.geometry.dispose();
+  if(child.material){if(child.material.map)child.material.map.dispose();child.material.dispose()}
+ }
+ labelSprites.length=0;
+}
+function scaleSceneLabels(forExport=false){
+ const height=Math.max(1,forExport?1100:viewer.clientHeight);
+ const width=Math.max(1,forExport?1400:viewer.clientWidth);
+ const pxW=forExport?230:Math.min(182,Math.max(125,width*.43));
+ const pxH=pxW*152/640;
+ const fov=THREE.MathUtils.degToRad(camera.fov);
+ for(const sprite of labelSprites){
+  const distance=Math.max(1,sprite.position.distanceTo(camera.position));
+  const unitPerPixel=2*distance*Math.tan(fov/2)/height;
+  sprite.scale.set(pxW*unitPerPixel,pxH*unitPerPixel,1);
+ }
+}
+function toggleLabels(){labelsVisible=!labelsVisible;labelGroup.visible=labelsVisible;$('labels-btn').textContent=`Aa Labels: ${labelsVisible?'on':'off'}`;$('labels-btn').setAttribute('aria-pressed',String(labelsVisible));}
+
+function material(color,metalness=.12){return new THREE.MeshStandardMaterial({color,metalness,roughness:.55,side:THREE.DoubleSide})}
+function meshBox(w,h,l,color){return new THREE.Mesh(new THREE.BoxGeometry(Math.max(1,w),Math.max(1,h),Math.max(1,l)),material(color))}
+function makeCanopy(c){const g=new THREE.Group();g.position.x=c.x;const width=c.width*U;const body=meshBox(width,53,95,PALETTE.canopy);body.position.y=22;g.add(body);const rim=meshBox(width+6,8,105,0xe3e8e3);rim.position.y=-5;g.add(rim);const hood=meshBox(width,8,95,0x8f9d9a);hood.position.y=53;g.add(hood);
+ const n=Math.max(3,Math.round(c.width*2));for(let i=0;i<n;i++){const filter=meshBox(width/n-7,34,3,0x445052);filter.position.set(-width/2+(i+.5)*width/n,15,49);g.add(filter)}g.traverse(obj=>{if(obj.isMesh){obj.userData.pick={kind:'canopy',id:c.id};pickMeshes.push(obj)}});sceneGroup.add(g);createSceneLabel(c.name,`${formatMetres(c.width)} m canopy width`,new THREE.Vector3(c.x,58,0),new THREE.Vector3(25,64,75))}
+function makeOutletMarker(o){const pos=outletPosition(o);const outer=new THREE.Mesh(new THREE.CylinderGeometry(24,24,8,24),material(0x263f2d));outer.position.copy(pos);outer.userData.pick={kind:'outlet',id:o.id};sceneGroup.add(outer);pickMeshes.push(outer);const inner=new THREE.Mesh(new THREE.CylinderGeometry(15,15,9,20),material(0x90d45c));inner.position.copy(pos);inner.userData.pick={kind:'outlet',id:o.id};sceneGroup.add(inner);pickMeshes.push(inner);const idx=state.outlets.filter(x=>x.canopyId===o.canopyId).indexOf(o)+1;createSceneLabel(`Outlet ${idx}`,canopyForOutlet(o)?.name||'Canopy outlet',pos,new THREE.Vector3(-50,20,-68))}
+function addPick(obj,kind,id){obj.userData.pick={kind,id};pickMeshes.push(obj)}
+function addDuctStraight(o,s,i,start,end){const d=dirVector(s.dir),len=start.distanceTo(end),center=start.clone().add(end).multiplyScalar(.5);const cross=s.size/10;// 500mm = 50 scene units
+ let mesh;
+ if(s.shape==='round')mesh=new THREE.Mesh(new THREE.CylinderGeometry(cross/2,cross/2,Math.max(len,.05),28),material(PALETTE[s.status]));
+ else mesh=meshBox(cross,cross*.68,Math.max(len,.05),PALETTE[s.status]);
+ // Local duct axis = Z, circular primitives need Y -> Z.
+ const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),d);
+ if(s.shape==='round')mesh.geometry.rotateX(Math.PI/2);
+ const group=new THREE.Group();group.position.copy(center);group.quaternion.copy(q);sceneGroup.add(group);group.add(mesh);addPick(mesh,'segment',s.id);for(const p of s.panels)makePanel(group,s,p,len);
+ const edges=new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry,24),new THREE.LineBasicMaterial({color:0x25372d,transparent:true,opacity:.42}));mesh.add(edges);
+}
+function panelGroup(face){const g=new THREE.Group();if(face==='right')g.rotation.z=-Math.PI/2;if(face==='left')g.rotation.z=Math.PI/2;if(face==='bottom')g.rotation.z=Math.PI;return g}
+function makePanel(group,s,p,length){const size=s.size/10;const g=panelGroup(p.face);g.position.z=(p.at-.5)*length;group.add(g);const onSide=p.face==='left'||p.face==='right';const faceRadius=s.shape==='round'?size/2:(onSide?size/2:size*.68/2);const normal=new THREE.Vector3(0,faceRadius+1.6,0).applyAxisAngle(new THREE.Vector3(0,0,1),g.rotation.z);g.position.x=normal.x;g.position.y=normal.y;const panelW=clamp(size*.58,14,49),panelL=clamp(length*.35,18,54);
+ if(s.shape==='rect'){
+    const edge=meshBox(panelW+5,3,panelL+5,0x142f1d);const face=meshBox(panelW,4,panelL,PALETTE.door);face.position.y=1.5;g.add(edge,face);addPick(face,'segment',s.id);addPick(edge,'segment',s.id);
+ }else{
+    const ellipse=(rX,rY,color)=>{const shape=new THREE.Shape();shape.absellipse(0,0,rX,rY,0,Math.PI*2,false);const geom=new THREE.ShapeGeometry(shape,30);geom.rotateX(-Math.PI/2);const obj=new THREE.Mesh(geom,material(color));obj.material.side=THREE.DoubleSide;return obj};const edge=ellipse(panelW*.57,panelL*.55,0x123a1b),face=ellipse(panelW*.49,panelL*.49,PALETTE.door);face.position.y=1;g.add(edge,face);addPick(face,'segment',s.id);addPick(edge,'segment',s.id)
+ }
+ // No invented panel dimensions: panel sizes here are schematic rather than surveyed measurements.
+ const anchor=group.localToWorld(g.position.clone());
+ createSceneLabel(`${s.shape==='rect'?'Square':'Oval'} access panel`,`${p.face} face · ${Math.round(p.at*100)}% along`,anchor,new THREE.Vector3(32,18,55));
+}
+function makeElbow(pivot,da,db,prev,next,r){const pin=pivot.clone().addScaledVector(da,-r),pout=pivot.clone().addScaledVector(db,r);const curve=new THREE.QuadraticBezierCurve3(pin,pivot,pout);const color=PALETTE[prev.status];if(prev.shape==='round'&&next.shape==='round'){
+  const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,14,prev.size/20,22,false),material(color));sceneGroup.add(mesh);addPick(mesh,'segment',prev.id);return;
+ }
+ // Extruded rectangular cross-section following the curved elbow centreline.
+ const W=prev.size/10,H=prev.shape==='round'?W:W*.68;const frames=[],vertices=[],indices=[];
+ for(let i=0;i<=12;i++){const t=i/12;const p=curve.getPoint(t),d=curve.getTangent(t).normalize();let up=Math.abs(d.y)>.92?new THREE.Vector3(0,0,1):new THREE.Vector3(0,1,0);const right=new THREE.Vector3().crossVectors(up,d).normalize();up=new THREE.Vector3().crossVectors(d,right).normalize();const corners=[[-1,-1],[1,-1],[1,1],[-1,1]];for(const [a,b] of corners){const v=p.clone().addScaledVector(right,a*W/2).addScaledVector(up,b*H/2);vertices.push(v.x,v.y,v.z)}frames.push(p)}
+ for(let i=0;i<12;i++)for(let j=0;j<4;j++){const a=i*4+j,b=i*4+(j+1)%4,c=(i+1)*4+j,d=(i+1)*4+(j+1)%4;indices.push(a,b,c,b,d,c)}
+ const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();const mesh=new THREE.Mesh(geometry,material(color));sceneGroup.add(mesh);addPick(mesh,'segment',prev.id)
+}
+function render3D(){clearSceneLabels();for(const obj of [...sceneGroup.children]){sceneGroup.remove(obj);obj.traverse(x=>{if(x.geometry)x.geometry.dispose();if(x.material){if(Array.isArray(x.material))x.material.forEach(y=>y.dispose());else x.material.dispose()}})}pickMeshes.length=0;
+ for(const c of state.canopies)makeCanopy(c);
+ for(const o of state.outlets){makeOutletMarker(o);let p=outletPosition(o);const nodes=[];for(const s of o.segments){const q=p.clone().addScaledVector(dirVector(s.dir),s.length*U);nodes.push({s,start:p.clone(),end:q.clone()});p=q}
+ const radii=[];for(let i=0;i<nodes.length-1;i++){const a=nodes[i],b=nodes[i+1];radii[i]=a.s.dir===b.s.dir?0:Math.min(32,a.s.length*U*.31,b.s.length*U*.31)}
+ nodes.forEach((n,i)=>{const d=dirVector(n.s.dir);const start=n.start.clone().addScaledVector(d,i===0?0:(radii[i-1]||0));const end=n.end.clone().addScaledVector(d,-(radii[i]||0));addDuctStraight(o,n.s,i,start,end);
+ const anchor=n.start.clone().lerp(n.end,.5);
+ createSceneLabel(`${segmentName(n.s)} ${i+1}`,`${segmentSize(n.s)} · ${formatMetres(n.s.length)} m`,anchor,new THREE.Vector3(i%2===0?67:-65,38+(i%3)*18,55));
+ if(i<nodes.length-1&&radii[i]){
+  makeElbow(n.end,d,dirVector(nodes[i+1].s.dir),n.s,nodes[i+1].s,radii[i]);
+  createSceneLabel('90° elbow',`${segmentSize(n.s)} · ${n.s.shape==='round'?'circular':'rectangular'}`,n.end,new THREE.Vector3(i%2===0?-38:45,-25,62));
+ }})}
+ highlightSelection();}
+function highlightSelection(){const sel=state.selected;for(const m of pickMeshes){if(!m.isMesh)continue;const p=m.userData.pick;if(!p)continue;if(!m.material?.emissive)continue;m.material.emissive.setHex(sel&&p.kind===sel.kind&&p.id===sel.id?0x354b0c:0x000000);m.material.emissiveIntensity=.7}}
+function fitView(showToast=false){const bounds=new THREE.Box3().setFromObject(sceneGroup);if(bounds.isEmpty())return;const center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3());const maxDim=Math.max(size.x,size.y,size.z,220);controls.target.copy(center);camera.position.copy(center).add(new THREE.Vector3(maxDim*1.25,maxDim*.9,maxDim*1.5));camera.near=.1;camera.far=Math.max(10000,maxDim*10);camera.updateProjectionMatrix();controls.update();if(showToast)toast('View fitted')}
+function resize(){const w=viewer.clientWidth,h=viewer.clientHeight;camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();renderer.setSize(w,h,false)}new ResizeObserver(resize).observe(viewer);resize();
+let pStart=null;renderer.domElement.addEventListener('pointerdown',e=>{pStart={x:e.clientX,y:e.clientY,t:Date.now()}});renderer.domElement.addEventListener('pointerup',e=>{if(!pStart||Math.hypot(e.clientX-pStart.x,e.clientY-pStart.y)>9)return;const r=renderer.domElement.getBoundingClientRect();pointer.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(pickMeshes,false);const hit=hits.find(h=>h.object.userData.pick);if(hit){const p=hit.object.userData.pick;select(p.kind,p.id,'edit')}pStart=null});
+function frame(){requestAnimationFrame(frame);controls.update();scaleSceneLabels();renderer.render(scene,camera)}frame();
+function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},2000)}
+function exportImage(){const w=1400,h=1100;const prevW=viewer.clientWidth,prevH=viewer.clientHeight,prevAspect=camera.aspect,prevRatio=renderer.getPixelRatio();renderer.setPixelRatio(1);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();scaleSceneLabels(true);renderer.render(scene,camera);const image=renderer.domElement.toDataURL('image/png');renderer.setPixelRatio(prevRatio);renderer.setSize(prevW,prevH,false);camera.aspect=prevAspect;camera.updateProjectionMatrix();scaleSceneLabels();const pic=new Image();pic.onload=()=>{const c=document.createElement('canvas');c.width=w;c.height=h+130;const ctx=c.getContext('2d');ctx.fillStyle='#10171a';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#e9f2e6';ctx.font='bold 32px Arial';ctx.fillText('VENTA-CLEAN SW  |  EXTRACT SCHEMATIC',36,52);ctx.font='19px Arial';ctx.fillStyle='#a6bba9';ctx.fillText(`${state.canopies.length} canopy(s)   ·   ${state.outlets.length} outlet(s)   ·   schematic, not to scale`,36,89);ctx.drawImage(pic,0,110);c.toBlob(b=>downloadBlob(b,'venta-clean-schematic.png'),'image/png');toast('PNG image prepared')};pic.src=image}
+function snapshot(){return JSON.stringify(state,(key,value)=>value)}
+function validData(d){return d&&d.version===2&&Array.isArray(d.canopies)&&Array.isArray(d.outlets)&&typeof d.idCounter==='number'}
+function loadSnapshot(raw){const d=JSON.parse(raw);if(!validData(d))throw Error('Not a version 2 schematic');for(const o of d.outlets||[])for(const s of o.segments||[])if(s.status==='unassessed')s.status='notcleaned';state=d;state.selected=null;state.activeOutletId=byId(state.outlets,state.activeOutletId)?state.activeOutletId:state.outlets[0]?.id||null;render3D();renderUI();fitView()}
+function newProject(){state={version:2,idCounter:0,canopies:[],outlets:[],activeOutletId:null,selected:null};const c={id:uid(),name:'Canopy 1',x:0,width:3};state.canopies.push(c);addOutlet(c.id,true);state.selected={kind:'outlet',id:state.activeOutletId};render3D();renderUI();fitView()}
+
+// Events
+for(const tab of document.querySelectorAll('.tab'))tab.addEventListener('click',()=>setTab(tab.dataset.tab));
+$('add-canopy').addEventListener('click',addCanopy);
+$('add-outlet').addEventListener('click',()=>addOutlet(suggestedCanopyId()));
+$('build-run').addEventListener('change',e=>select('outlet',e.target.value,'build'));
+$('add-duct').addEventListener('click',addSection);
+$('add-shape').addEventListener('change',e=>{$('add-size-label').textContent=e.target.value==='round'?'Diameter (mm)':'Duct width (mm)'});
+for(const prop of ['length','dir','shape','size','status'])$('edit-'+prop).addEventListener('change',e=>editSegmentProp(prop,e.target.value));
+$('add-panel').addEventListener('click',addPanel);
+$('remove-segment').addEventListener('click',removeSelectedSegment);
+$('canopy-width').addEventListener('change',e=>{const c=byId(state.canopies,state.selected?.id),n=Number(e.target.value);if(!c)return;if(!(n>=1&&n<=8)){toast('Width must be 1–8m');renderUI();return}c.width=n;render3D();fitView()});
+$('outlet-on-selected').addEventListener('click',()=>{addOutlet(state.selected?.id);setTab('build')});
+$('select-canopy-outlet').addEventListener('click',()=>{const o=state.outlets.find(x=>x.canopyId===state.selected?.id);if(o)select('outlet',o.id,'build')});
+$('build-from-outlet').addEventListener('click',()=>setTab('build'));
+$('focus-btn').addEventListener('click',()=>fitView(true));
+$('labels-btn').addEventListener('click',toggleLabels);
+$('save').addEventListener('click',()=>{try{localStorage.setItem('venta-clean-v2',snapshot());toast('Saved on this phone')}catch(e){toast('Storage unavailable: use JSON backup')}});
+$('load').addEventListener('click',()=>{try{const raw=localStorage.getItem('venta-clean-v2');if(!raw)return toast('No saved project on this phone');loadSnapshot(raw);toast('Saved project loaded')}catch(e){toast('Could not load saved project')}});
+$('export-json').addEventListener('click',()=>{downloadBlob(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),'venta-clean-project.json');toast('Project backup downloaded')});
+$('import-json').addEventListener('click',()=>$('loadfile').click());$('loadfile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{loadSnapshot(await file.text());toast('Backup imported')}catch(err){toast('Invalid project JSON file')}e.target.value=''});
+$('export-png').addEventListener('click',exportImage);
+$('new-project').addEventListener('click',()=>{if(confirm('Start a new schematic? Export a backup first if you need this drawing.')){newProject();setTab('build');toast('New project ready')}});
+newProject();
+</script>
+</body>
+</html>
